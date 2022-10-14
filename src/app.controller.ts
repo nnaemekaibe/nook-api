@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -9,8 +9,14 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-  @Get('/notion')
-  getNotionDoc(): any {
-    return this.appService.getNotionDoc();
+  @Get('/notion/:id')
+  async getNotionDoc(@Param() params): Promise<any> {
+    const blocks = await this.appService.getNotionDoc(params.id);
+    return { data: blocks };
+  }
+  @Get('/search')
+  async search(): Promise<any> {
+    const results = await this.appService.search();
+    return { data: results };
   }
 }
