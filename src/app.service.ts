@@ -16,7 +16,7 @@ dotenv.config();
 @Injectable()
 export class AppService {
   notion = new Client({
-    auth: 'secret_8B6WXfgh87fKS9HEO0j2DFWx4c3X3kvYvuSXoMArFX3',
+    auth: process.env.NOTION_KEY,
   });
 
   getHello(): string {
@@ -41,9 +41,10 @@ export class AppService {
   }
 
   async getBlocks(blockID: string) {
-    return await this.notion.blocks.children.list({
+    const blocks = await this.notion.blocks.children.list({
       block_id: blockID,
     });
+    return blocks;
   }
 
   async handleBlockResults(blocks: any) {
@@ -52,9 +53,9 @@ export class AppService {
         return result;
       }
     });
-    for (let i = 0; i < blockWithChildren.length; i++) {
-      const childBlock = await this.getBlocks(blockWithChildren[i].id);
-      blockWithChildren[i].childBlock = childBlock;
+    for (const block of blockWithChildren) {
+      const childBlock = await this.getBlocks(block.id);
+      block.childBlock = childBlock;
       await this.handleBlockResults(childBlock);
     }
   }
