@@ -24,8 +24,36 @@ export class AppService {
   }
 
   async search(): Promise<any> {
-    const results = await this.notion.search({});
-    return results;
+    const res = await this.notion.search({});
+    const { results, type, object } = res;
+
+    const subjects: any = [];
+
+    if (
+      object === 'list' &&
+      type === 'page_or_database' &&
+      results.length > 0
+    ) {
+      const pages = results.filter((result: any) => {
+        return result.object === 'page' && result.properties.title;
+      });
+
+      pages?.map((page: any) => {
+        const {
+          parent: { page_id },
+        } = page;
+        if (!subjects.includes(page_id)) subjects.push(page_id);
+      });
+    }
+    const idTitleMap = {};
+    //get the pages for each of these subjects and extract their titles.
+    for (const subject of subjects) {
+      const page: any = await this.notion.pages.retrieve({ page_id: subject });
+      const title = page.properties.Name.title[0].plain_text;
+      idTitleMap[subject] = title;
+    }
+
+    return { res, idTitleMap };
   }
 
   async getNotionDoc(docID: string): Promise<any> {
